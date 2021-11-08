@@ -4,6 +4,7 @@ using SalesWebMVC.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using SalesWebMVC.Services.Exceptions;
+using System.Threading.Tasks;
 
 namespace SalesWebMVC.Services
 {
@@ -16,39 +17,40 @@ namespace SalesWebMVC.Services
             _context = context;
         }
 
-        public List<Seller> FindAll()
+        public async Task<List<Seller>> FindAllAsync()
         {
-            return _context.Seller.ToList();
+            return await _context.Seller.ToListAsync();
         }
 
-        public void Insert(Seller thisObj)
+        public async Task InsertAsync(Seller thisObj)
         {
             _context.Add(thisObj);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public Seller FindbyId(int id)
+        public async Task<Seller> FindbyIdAsync(int id)
         {
-            return _context.Seller.Include(obj => obj.Department).FirstOrDefault(obj => obj.Id == id);
+            return await _context.Seller.Include(obj => obj.Department).FirstOrDefaultAsync(obj => obj.Id == id);
         }
 
-        public void Remove(int id)
+        public async Task RemoveAsync(int id)
         {
-            var obj = _context.Seller.Find(id);
+            var obj = await _context.Seller.FindAsync(id);
             _context.Seller.Remove(obj);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public void Update (Seller thisObj)
+        public async Task UpdateAsync (Seller thisObj)
         {
-            if(!_context.Seller.Any(x => x.Id == thisObj.Id))
+            bool hasAny = await _context.Seller.AnyAsync(x => x.Id == thisObj.Id);
+            if (!hasAny )
             {
                 throw new NotFoundException("Id not found");
             }
             try
             {
                 _context.Update(thisObj);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException e)
             {
